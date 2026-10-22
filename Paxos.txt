@@ -8,11 +8,11 @@ Basic Paxos主要两阶段过程，分别是Prepare和Accept。
 一次完整的Basic Paxos过程如下：
 1、Proposer生成一个全局唯一且递增的提案编号N，然后向所有的Acceptor发送Prepare(N)
 2、Acceptor收到Prepare(N)时，比较N与promisedN（ps：promisedN指Acceptor之前承诺过不再接收比它小的编号）：
-  如果N>promisedN，则更新promisedN=N，返回Promise(N,accepted)，其中accepted是历史上接受过的编号最大的提案，可能为空；并承诺不再接受编号小于N的任何提案
-  如果N=promisedN,则幂等返回（不变）Promise(N,accepted),或拒绝
-  如果N<promisedN，则拒绝，并返回自己当前的promisedN
+  如果N>promisedN，则更新promisedN=N，返回Promise(N,accepted)，其中accepted是历史上接受过的编号最大的提案，可能为空；并承诺不再接受编号小于N的任何提案;
+  如果N=promisedN,则幂等返回（不变）Promise(N,accepted),或拒绝;
+  如果N<promisedN，则拒绝，并返回自己当前的promisedN。 
 3、Acceptor收到Accept(N,V)时：
-  如果N>=promisedN，接受，并记录accepted=(N,V)，返回Accepted(N,V)
+  如果N>=promisedN，接受，并记录accepted=(N,V)，返回Accepted(N,V);
   如果N<promisedN，拒绝，返回当前promisedN。
 3、当Proposer 收到多数派 Accepted(N, V)，(N, V) 被选定，这个 Paxos 实例就结束了。
 注：为什么要把历史的值塞进新的提案号里？
