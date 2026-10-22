@@ -1,0 +1,21 @@
+2026-10-21·学习Paxos协议，希望可以理解掌握优秀的共识算法是如何实现的
+
+Paxos：一种一致性/共识算法，用于分布式系统的数据一致性保证
+有哪些角色：Proposer（提案者）、Acceptor（接受者）、Learner（学习者）
+过程：
+Basic Paxos主要两阶段过程，分别是Prepare和Accept。
+它的变体（现在工程中常用的）Multi-Paxos简化了Prepare，选出一个leader进行多次提议，后续操作可以跳过Prepare阶段，直接进入Accept阶段。
+一次完整的Basic Paxos过程如下：
+1、Proposer生成一个全局唯一且递增的提案编号N，然后向所有的Acceptor发送Prepare(N)
+2、Acceptor收到Prepare(N)时，比较N与promisedN（ps：promisedN指Acceptor之前承诺过不再接收比它小的编号）：
+  如果N>promisedN，则更新promisedN=N，返回Promise(N,accepted)，其中accepted是历史上接受过的编号最大的提案，可能为空；并承诺不再接受编号小于N的任何提案
+  如果N=promisedN,则幂等返回（不变）Promise(N,accepted),或拒绝
+  如果N<promisedN，则拒绝，并返回自己当前的promisedN
+3、Acceptor收到Accept(N,V)时：
+  如果N>=promisedN，接受，并记录accepted=(N,V)，返回Accepted(N,V)
+  如果N<promisedN，拒绝，返回当前promisedN。
+3、当Proposer 收到多数派 Accepted(N, V)，(N, V) 被选定，这个 Paxos 实例就结束了。
+注：为什么要把历史的值塞进新的提案号里？
+核心是为了防止覆盖“可能已经被接受的值”，因为不确定这个值之前是否被接受过，如果被接受过，说明这个提案收到了多数派接受，这是如果不管之前的提案，因为提案号小就输出新的提案，如果这个提案也被多数派接受，这样两个不同的提案都被接受，违反了Paxos的安全性
+
+
